@@ -1,6 +1,12 @@
 # API Explorer
 API explorer UI built for OpenAPI exploration and testing
 
+run locally:
+```
+yarn install
+yarn start
+```
+
 ## Todos:
 
 - [ ] Parse OpenAPI version 3 data and visualize it
