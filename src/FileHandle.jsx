@@ -7,6 +7,7 @@ import ListItemText from '@mui/material/ListItemText';
 import MenuItem from '@mui/material/MenuItem';
 import Menu from '@mui/material/Menu';
 import React from 'react';
+import ApiExplorer from './ApiExplorer.jsx'
 
 
 
@@ -17,6 +18,7 @@ const FileHandle = () => {
   const [name, setName] = useState("");
   const [contact, setContact] = useState("");
   const [file, setFile] = useState("");
+  const [serverurl,setServerUrl] = useState("");
   const [fileBase64, setFileBase64] = useState("");
   const [isAppLoaded, setIsAppLoaded] = useState(false);
   const [description, setDescription] = useState("");
@@ -32,7 +34,6 @@ const FileHandle = () => {
 
 
   //client_credentials
-
  const handleGetRef = (parameter, data) => {
     try {
       if (parameter === null || parameter["$ref"] === undefined) {
@@ -1059,6 +1060,7 @@ const parseIncomingOpenapiData = (data) => {
 		}
 
 		console.log("Actions: ", newActions.length, " BaseURL: ", parentUrl)
+		setServerUrl(parentUrl)
 	        console.log("Actions: ", newActions)
 		var newActions2 = []
 		// Remove with duplicate action URLs
@@ -1111,39 +1113,17 @@ const parseIncomingOpenapiData = (data) => {
     setIsAppLoaded(true);
   };
 
-const Layout = ({info}) => {
-
-    return (
-	<div style={{"display": "flex", "flexDirection": "column"}}>
-        <div style={{"display": "flex",paddingLeft: "21px",alignItems: "center"}}>
-            <img alt={info.title} src={info["x-logo"] ? '' : `https://ui-avatars.com/api/?name=${info.title}`} width={60} height={60} />
-            <h1 style={{paddingLeft: "5px"}}>
-                {info.title}
-            </h1>
-	</div>
-	    <div style={{"display": "flex", "flexDirection": "column", "width": "15%", backgroundColor: "black", "height": "80vh"}}>
-            {actions.map((action)=> (
-                <button key={`${action.name}`} id="test" style={{marginTop: "10px"}}>
-                    {action.name}
-                </button>
-            ))}
-	    </div>
-	</div>
-    )
-}
-
     useEffect(() => {
         const data = loc.state
         setValue(YAML.parse(data));
         parseIncomingOpenapiData(data);
     }, [])
 
-
     return (
         <div>
             {value 
                 ?
-                    <Layout info={value.info}></Layout>
+                    <ApiExplorer info={value.info} actions={actions} serverurl={serverurl}></ApiExplorer>
                 : 
                     'loaded'}
         </div>
