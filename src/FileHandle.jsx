@@ -30,6 +30,7 @@ const FileHandle = () => {
   const [basedata, setBasedata] = React.useState({});
   const [actions, setActions] = useState([]);
   const [actionAmount, setActionAmount] = useState(increaseAmount);
+  const [appdata, setAppdata] = useState({})
   const [filteredActions, setFilteredActions] = useState([]);
 
 
@@ -64,14 +65,9 @@ const FileHandle = () => {
 
       newitem = newitem[tmpparam];
     }
-
-    console.log("NEW ITEM: ", newitem)
-    console.log("DATA: ", data)
-
+    console.log("ITEM", newitem)
     return newitem;
   };
-
-
 
 	// From 2023: Example to handle action labels
 	// Goal: Make this dynamically load from the backend
@@ -375,7 +371,11 @@ const parseIncomingOpenapiData = (data) => {
 
 											methodvalue["requestBody"]["content"]["application/json"]["schema"]["$ref"] !== undefined && methodvalue["requestBody"]["content"]["application/json"]["schema"]["$ref"] !== null) {
 											const retRef = handleGetRef(methodvalue["requestBody"]["content"]["application/json"]["schema"], data);
-											
+											console.log("VAL", retRef, "FOR", methodvalue)
+				setAppdata(prevState => ({
+					...prevState,
+					[methodvalue.summary]: {...retRef}
+				}))
 											var newbody = {};
 											// Can handle default, required, description and type
 											for (let propkey in retRef.properties) {
@@ -588,9 +588,6 @@ const parseIncomingOpenapiData = (data) => {
                     methodvalue.responses.default.content["text/plain"]["schema"] !== undefined) {
                     if (methodvalue.responses.default.content["text/plain"]["schema"]["example"] !== undefined) {
                       newaction.example_response = methodvalue.responses.default.content["text/plain"]["schema"]["example"]
-                        
-                        
-
                     }
 
                     if (methodvalue.responses.default.content["text/plain"]["schema"]["format"] === "binary" && methodvalue.responses.default.content["text/plain"]["schema"]["type"] === "string") {
@@ -639,6 +636,9 @@ const parseIncomingOpenapiData = (data) => {
                           ],
                           data
                         );
+			console.log(newaction)
+			console.log(parameter)
+
 
                         //console.log("Reading parameter type 2", parameter)
                         if (parameter.properties !== undefined && parameter["type"] === "object") {
@@ -723,8 +723,9 @@ const parseIncomingOpenapiData = (data) => {
                               selectedComponent,
                               data
                             );
-
-														console.log("Reading parameter type 3!")
+				
+			   console.log(parameter)
+			   console.log("Reading parameter type 3!")
                             if (parameter.properties !== undefined && parameter["type"] === "object") {
                               var newbody = {};
                               for (let propkey in parameter.properties) {
@@ -880,6 +881,7 @@ const parseIncomingOpenapiData = (data) => {
 
           for (let paramkey in methodvalue.parameters) {
             const parameter = handleGetRef(methodvalue.parameters[paramkey], data);
+	    console.log("PARAMETER", parameter)
             if (parameter.in === "query") {
               var tmpaction = {
                 description: parameter.description,
@@ -927,6 +929,7 @@ const parseIncomingOpenapiData = (data) => {
 		  if (newaction.body !== undefined && newaction.body !== null && newaction.body.length > 0) {
 			  // Trim starting / ending newlines, spaces and tabs
 			  newaction.body = newaction.body.trim()
+
 		  }
 
 
@@ -1119,11 +1122,12 @@ const parseIncomingOpenapiData = (data) => {
         parseIncomingOpenapiData(data);
     }, [])
 
+    console.log(appdata)
     return (
         <div>
             {value 
                 ?
-                    <ApiExplorer info={value.info} actions={actions} serverurl={serverurl}></ApiExplorer>
+                    <ApiExplorer info={value.info} actions={actions} serverurl={serverurl} moredata={appdata}></ApiExplorer>
                 : 
                     'loaded'}
         </div>
