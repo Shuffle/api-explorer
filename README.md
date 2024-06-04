@@ -7,6 +7,10 @@ yarn install
 yarn start
 ```
 
+![screenshot](img/2024-06-04_13-40.png)
+
+![screenshot2](img/2024-06-04_13-40_1.png)
+
 ## Todos:
 
 - [x] Parse OpenAPI version 3 data and visualize it
