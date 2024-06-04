@@ -7,7 +7,9 @@ yarn install
 yarn start
 ```
 
-![screenshot](img/2024-06-04_13-40.png)
+*NOTE: * Use the yaml file in the repo to test.
+
+![screenshot](img/2024-06-04_13-48.png)
 
 ![screenshot2](img/2024-06-04_13-40_1.png)
 
