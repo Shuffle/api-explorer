@@ -9,9 +9,9 @@ yarn start
 
 **NOTE:** Use the yaml file in the repo to test.
 
-![screenshot](img/2024-06-04_13-48.png)
+![screenshot](img/base.png)
 
-![screenshot2](img/2024-06-04_13-40_1.png)
+![screenshot2](img/base2.png)
 
 ## Todos:
 
