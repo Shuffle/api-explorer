@@ -10,15 +10,18 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@codemirror/lang-json": "^6.0.1",
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.5",
     "@mui/material": "^5.15.18",
+    "@uiw/react-codemirror": "^4.22.2",
     "localforage": "^1.10.0",
     "match-sorter": "^6.3.4",
     "react": "^18.2.0",
     "react-code-blocks": "^0.1.6",
     "react-dom": "^18.2.0",
     "react-json-view": "^1.21.3",
+    "react-resizable-panels": "^2.0.19",
     "react-router-dom": "^6.23.1",
     "react-use": "^17.5.0",
     "sort-by": "^1.2.0",

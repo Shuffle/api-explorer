@@ -14,14 +14,21 @@ import SwipeableDrawer from '@mui/material/SwipeableDrawer';
 import TextField from '@mui/material/TextField';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import CodeMirror from '@uiw/react-codemirror';
+import { json } from '@codemirror/lang-json';
+import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
-const cUrl = async (url, method, data) => {
+
+const cUrl = async (url, headers, method, data) => {
     const values = await fetch(url, {
         method: method,
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer nCXHPHBqXOinWbZJRznj7VOrH3HmKYLw"
-        },
+        headers: headers,
         body: JSON.stringify(data)
     })
     return values
@@ -59,16 +66,50 @@ const ApiExplorer = ({actions, info, serverurl, moredata}) => {
     const [valueResponse, setIsResponse] = useState(false)
     const [state, setState] = useState({bottom: false})
     const [value, setValue] = useState(0);
+    const [rows, setRows] = useState([{ key: '', value: '' }]);
+    const [paramRows, setParamRows] = useState([{ key: '', value: '' }])
+    const [reqUrl, setReqUrl] = useState(curData.url)
+    const [query, setQuery] = useState('');
+
+     const addRow = (setRow, row) => {
+       setRow([...row, { key: '', value: '' }]);
+     };
+
+     const handleInputChange = (index, field, value, setRow, row) => {
+       const newRows = [...row];
+       newRows[index][field] = value;
+       setRow(newRows);
+     };
+
+    useEffect(() => {
+        updateQueryString(paramRows)
+    },[paramRows])
+
+    const updateQueryString = (paramRows) => {
+       setQuery(paramRows.filter(row => row.key && row.value).map(row => `${encodeURIComponent(row.key)}=${encodeURIComponent(row.value)}`).join('&'))
+       if (query !== '') {
+        setReqUrl(`${curData.url}?${query}`)
+       } else {
+        setReqUrl(`${curData.url}`)
+       }
+    }
+
+    const genrateHeaders = () => {
+        const obj = rows.reduce((acc, row) => {
+            if (row.key && row.value) {
+                acc[String(row.key)] = row.value;
+            }
+            return acc;
+        }, {})
+        console.log(obj)
+        return obj
+    }
 
     const handleChangeTab = (event, newValue) => {
         setValue(newValue);
     };
 
     const anchor = "bottom"
-
-    useEffect(() => {
-        console.log(valueResponse)
-    }, [valueResponse])
 
     const toggleDrawer = (anchor, open) => (event) => {
       if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
@@ -80,13 +121,14 @@ const ApiExplorer = ({actions, info, serverurl, moredata}) => {
     };
 
     const handleExecution = () => {
-        const value = cUrl(`${baseurl + curData['url']}`, curData['method'], formData())
+        const value = cUrl(`${baseurl + reqUrl}`, genrateHeaders(),curData['method'], formData())
         value.then(response => response.json()).then(data => setIsResponse(data))
     }
 
     //name
     const handleChange = (index) => {
         console.log(moredata[data[index].name] ? moredata[data[index].name] : data[index])
+        setReqUrl(data[index].url)
         setCurData(data[index])
     }
 
@@ -101,10 +143,10 @@ const ApiExplorer = ({actions, info, serverurl, moredata}) => {
     }
 
     const genCode = () => {
-        return `curl "${baseurl + curData['url']}" \\
-                -X "${curData['method']}"                                                             \\
-                -H "Authorization: Bearer <API KEY>"                                                   \\
-                -d '${JSON.stringify(formData())}'`
+        return `curl --location "${baseurl + curData['url']}"   \\
+                -X "${curData['method']}"   \\
+                -H "X-API-VALUE"    \\
+                -d '{{BODY}}'`
     }
 
     const AppActions = () => {
@@ -147,8 +189,9 @@ const ApiExplorer = ({actions, info, serverurl, moredata}) => {
                     Shuffle - {info.title}
                 </h1>
             </div>
+            <PanelGroup autoSaveId="example" direction="vertical">
             <div style={{display: "flex", flexDirection: "row"}}>
-                <Paper style={{display: "flex", flexDirection: "column", width: "15vw", height: "100vh"}}>
+                <Paper style={{display: "flex", flexDirection: "column", width: "15vw", height: "109vh"}}>
                     <ButtonGroup 
                         orientation="vertical"
                         variant="text">
@@ -168,7 +211,7 @@ const ApiExplorer = ({actions, info, serverurl, moredata}) => {
                              <MenuItem value={"POST"}><span style={{color: "#AD7A03", fontWeight: "bold"}}>POST</span></MenuItem>
                              <MenuItem value={"PUT"}><span style={{color: "#0053B8", fontWeight: "bold"}}>PUT</span></MenuItem>
                          </Select>
-                         <span style={{paddingLeft: "8px", fontWeight: "500"}}>{curData.url}</span>
+                         <span style={{paddingLeft: "8px", fontWeight: "500"}}>{reqUrl}</span>
                      </Box>
                      <Button color="success" variant="contained" style={{marginTop: "32px", height: "6vh", width: "5vw", marginLeft: "10px"}} onClick={toggleDrawer(anchor, true)}>Send</Button>
                  </div>
@@ -177,11 +220,12 @@ const ApiExplorer = ({actions, info, serverurl, moredata}) => {
                            <Tabs value={value} onChange={handleChangeTab} aria-label="basic tabs example">
                              <Tab label="Overview" {...a11yProps(0)} />
                              <Tab label="Headers" {...a11yProps(1)} />
-                             <Tab label="Auth" {...a11yProps(2)} />
+                             <Tab label="Params" {...a11yProps(2)} />
                              <Tab label="Body" {...a11yProps(3)} />
                            </Tabs>
                          </Box>
                 </div>
+                <Panel>
                 <CustomTabPanel value={value} index={0}>
                     <h1 style={{padding: "16px 32px", margin: "40px 120px 0px 120px"}}>{curData.name}</h1>
                     <div style={{display: "flex", flexDirection: "column", alignItems: "center"}}>
@@ -194,7 +238,6 @@ const ApiExplorer = ({actions, info, serverurl, moredata}) => {
                          <h3 style={{borderBottom: "1px solid rgb(237, 237, 237)", width: "60vw"}}>
                              Body <span style={{color: "rgb(107, 107, 107)", fontSize: "14px", fontWeight: "normal"}}>edit to change value</span>
                          </h3>
-        
                          <ReactJson src={formData()} displayObjectSize={false} displayDataTypes={false} iconStyle={"circle"} style={{fontWeight: "bold", width: "60vw"}} onEdit={(edit) => { console.log(edit) }}/>
 
                          <h3 style={{borderBottom: "1px solid rgb(237, 237, 237)", width: "60vw"}}>
@@ -202,7 +245,7 @@ const ApiExplorer = ({actions, info, serverurl, moredata}) => {
                          </h3>
                          <div style={{width: "60vw"}}>
                             <CopyBlock
-                                text={`curl --location "https://api.mistral.ai/v1/chat/completions"`}
+                                text={genCode()}
                                 language={`bash`}
                                 showLineNumbers={true}
                                 theme={github}
@@ -210,25 +253,95 @@ const ApiExplorer = ({actions, info, serverurl, moredata}) => {
                                 style={{width: "60vw", fontSize: "4000px"}}
                             />
                         </div>
-                        <SwipeableDrawer
-                          anchor={anchor}
-                          open={state[anchor]}
-                          onClose={toggleDrawer(anchor, false)}
-                          onOpen={toggleDrawer(anchor, true)}
-                            >
-                            <div style={{height: "40vh", margin: "60px 60px 60px 60px"}}>
-                                <h1><center>Request Response (TEMP)</center></h1>
-                                <ReactJson src={valueResponse} displayObjectSize={false} displayDataTypes={false} iconStyle={"circle"} style={{fontWeight: "bold", width: "60vw"}} onEdit={(edit) => { console.log(edit) }}/>
-
-                            </div>
-                        </SwipeableDrawer>
                     </div>
                 </CustomTabPanel>
-
+                <CustomTabPanel value={value} index={1}>
+                    <TableContainer component={Paper} style={{ margin: "40px 0px 0px 0px" }}>
+                        <Table aria-label="simple table">
+                          <TableHead>
+                            <TableRow>
+                              <TableCell>Key</TableCell>
+                              <TableCell>Value</TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {rows.map((row, index) => (
+                              <TableRow key={index}>
+                                <TableCell>
+                                  <input
+                                    type="text"
+                                    value={row.key}
+                                    onChange={(e) => handleInputChange(index, 'key', e.target.value, setRows, rows)}
+                                  />
+                                </TableCell>
+                                <TableCell>
+                                  <input
+                                    type="text"
+                                    value={row.value}
+                                    onChange={(e) => handleInputChange(index, 'value', e.target.value, setRows, rows)}
+                                  />
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
+                      <Button onClick={() => { addRow(setRows, rows) }} variant="contained" color="primary" style={{ marginTop: '20px' }}>
+                        Add Row
+                      </Button>
+                </CustomTabPanel>
+                <CustomTabPanel value={value} index={2}>
+                    <TableContainer component={Paper} style={{ margin: "40px 0px 0px 0px" }}>
+                        <Table aria-label="simple table">
+                          <TableHead>
+                            <TableRow>
+                              <TableCell>Key</TableCell>
+                              <TableCell>Value</TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {paramRows.map((row, index) => (
+                              <TableRow key={index}>
+                                <TableCell>
+                                  <input
+                                    type="text"
+                                    value={row.key}
+                                    onChange={(e) => handleInputChange(index, 'key', e.target.value, setParamRows, paramRows)}
+                                  />
+                                </TableCell>
+                                <TableCell>
+                                  <input
+                                    type="text"
+                                    value={row.value}
+                                    onChange={(e) => handleInputChange(index, 'value', e.target.value, setParamRows, paramRows)}
+                                  />
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
+                      <Button onClick={() => { addRow(setParamRows, paramRows) }} variant="contained" color="primary" style={{ marginTop: '20px' }}>
+                        Add Row
+                      </Button>
+                </CustomTabPanel>
+                <CustomTabPanel value={value} index={3}>
+                    <CodeMirror value={JSON.stringify(formData(), null, 4)} height="50vh" style={{margin: "50px 0px 0px 0px"}} extensions={json()}/>
+                </CustomTabPanel>
+                  </Panel>
+                    <PanelResizeHandle />
+                  <Panel>
+                    <div style={{height: "40vh", margin: "60px 60px 60px 60px"}}>
+                    <h1><center>Request Response (TEMP)</center></h1>
+                    <ReactJson src={valueResponse} displayObjectSize={false} displayDataTypes={false} iconStyle={"circle"} style={{fontWeight: "bold", width: "60vw"}} onEdit={(edit) => { console.log(edit) }}/>
+                    </div>
+                  </Panel>
                 </div>
             </div>
+            </PanelGroup>
         </div>
     )
+                //<h1 style={{padding: "16px 32px", margin: "40px 120px 0px 120px"}}>{curData.name}</h1>
 
            // <div style={{display: "flex", borderRight: "1px solid black", width: "15%", height: "91vh"}}>
            // </div>
