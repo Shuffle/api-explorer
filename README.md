@@ -1,6 +1,12 @@
 # API Explorer
 API explorer NPM package
 
+Build Locally
+```bash
+    $ npm install
+    $ npm run rollup
+```
+
 ![screenshot](img/2024-06-21_10-30.png)
 
 ![screenshot2](img/2024-06-21_10-31.png)
