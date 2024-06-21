@@ -1,9 +1,9 @@
 # API Explorer
 API explorer NPM package
 
-![screenshot](img/base.png)
+![screenshot](img/2024-06-21_10-30.png.png)
 
-![screenshot2](img/base2.png)
+![screenshot2](img/2024-06-21_10-31.png.png)
 
 ## Todos:
 
